@@ -695,7 +695,7 @@ def CreateModel(feats,units=[16,8,4,8,16], dropout=.25,
 
 
   if feats.model_type == 'AUTO' or feats.model_type == 'AUTODeep':
-    opt = tensorflow.keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999,
+    opt = tf.keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999,
                                 epsilon=None, decay=0.0, amsgrad=False)
     model.compile(optimizer=opt, loss='mean_squared_error')
 
@@ -707,7 +707,7 @@ def CreateModel(feats,units=[16,8,4,8,16], dropout=.25,
       (feats.model_type == 'NN')):
 
     # initiate adam optimizer
-    opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999,
+    opt = tf.keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999,
                                 epsilon=None, decay=0.0, amsgrad=False)
     # Let's train the model using RMSprop
     model.compile(loss='binary_crossentropy',
@@ -1009,9 +1009,10 @@ def FeatureEngineer(epochs, model_type='NN',
 
   #compute class weights for uneven classes
   y_ints = [y.argmax() for y in feats.y_train]
-  feats.class_weights = class_weight.compute_class_weight('balanced',
+  class_weights = class_weight.compute_class_weight('balanced',
                                                  np.unique(y_ints),
                                                  y_ints)
+  feats.class_weights = {i : class_weights[i] for i in range(len(class_weights))}
 
   #Print some outputs
   print('Combined X Shape: ' + str(X.shape))
