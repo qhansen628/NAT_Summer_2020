@@ -55,7 +55,6 @@ dependencies:
   - m2w64-gcc-libs=5.3.0=7
   - m2w64-gcc-libs-core=5.3.0=7
   - m2w64-gmp=6.1.0=2
-  - m2w64-libwinpthread-git=5.0.0.4634.697f757=2
   - markupsafe=1.1.1=py37he774522_0
   - mccabe=0.6.1=py37_1
   - mistune=0.8.4=py37he774522_0
@@ -99,9 +98,6 @@ dependencies:
   - python-language-server=0.31.9=py37_0
   - python_abi=3.7=1_cp37m
   - pytz=2020.1=py_0
-  - pywin32=227=py37he774522_1
-  - pywin32-ctypes=0.2.0=py37_1000
-  - pywinpty=0.5.7=py37_0
   - pyyaml=5.3.1=py37he774522_0
   - pyzmq=18.1.1=py37ha925a31_0
   - qdarkstyle=2.8.1=py_0
@@ -142,9 +138,6 @@ dependencies:
   - wcwidth=0.1.9=py_0
   - webencodings=0.5.1=py37_1
   - wheel=0.34.2=py37_0
-  - win_inet_pton=1.1.0=py37_0
-  - wincertstore=0.2=py37_0
-  - winpty=0.4.3=4
   - wrapt=1.11.2=py37he774522_0
   - yaml=0.1.7=hc54c509_2
   - yapf=0.28.0=py_0
@@ -204,7 +197,6 @@ dependencies:
     - pyopenbci==0.13
     - pyopengl==3.1.5
     - pyosf==1.0.5
-    - pypiwin32==223
     - pyqmix==2019.1
     - pyqt5==5.14.2
     - pyqt5-sip==12.7.2
@@ -212,7 +204,6 @@ dependencies:
     - pyserial==3.4
     - python-bidi==0.4.2
     - python-gitlab==2.2.0
-    - pywinhook==1.6.2
     - questplus==2019.4
     - ruamel-yaml==0.16.10
     - ruamel-yaml-clib==0.2.0
