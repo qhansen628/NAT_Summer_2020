@@ -712,7 +712,7 @@ def CreateModel(feats,units=[16,8,4,8,16], dropout=.25,
     # Let's train the model using RMSprop
     model.compile(loss='binary_crossentropy',
                   optimizer=opt,
-                  metrics=['accuracy'])
+                  metrics=['acc'])
     encoder = []
 
 
