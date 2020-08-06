@@ -981,7 +981,7 @@ def FeatureEngineer(epochs, model_type='NN',
     X = (X - np.mean(X)) / np.std(X)
 
   # convert class vectors to one hot Y and recast X
-  Y = tensorflow.keras.utils.to_categorical(Y_class,feats.num_classes)
+  Y = tf.keras.utils.to_categorical(Y_class,feats.num_classes)
   X = X.astype('float32')
 
   # add watermark for testing models
