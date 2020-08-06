@@ -695,7 +695,7 @@ def CreateModel(feats,units=[16,8,4,8,16], dropout=.25,
 
 
   if feats.model_type == 'AUTO' or feats.model_type == 'AUTODeep':
-    opt = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999,
+    opt = tensorflow.keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999,
                                 epsilon=None, decay=0.0, amsgrad=False)
     model.compile(optimizer=opt, loss='mean_squared_error')
 
@@ -796,6 +796,22 @@ def TrainTestVal(model, feats, batch_size=2,
     data['acc'] = acc
 
     return model, data
+
+class Feats:
+  def __init__(self, num_classes=2, class_weights=[1,1], input_shape=[16,], 
+               new_times=1, model_type='1', 
+               x_train=1, y_train=1, x_test=1, y_test=1, x_val=1, y_val=1):
+    self.num_classes = num_classes
+    self.class_weights = class_weights
+    self.input_shape = input_shape
+    self.new_times = new_times
+    self.model_type = model_type
+    self.x_train = x_train
+    self.y_train = y_train
+    self.x_test = x_test
+    self.y_test = y_test
+    self.x_val = x_val
+    self.y_val = y_val
 
 def FeatureEngineer(epochs, model_type='NN',
                 frequency_domain=False,
@@ -965,7 +981,7 @@ def FeatureEngineer(epochs, model_type='NN',
     X = (X - np.mean(X)) / np.std(X)
 
   # convert class vectors to one hot Y and recast X
-  Y = keras.utils.to_categorical(Y_class,feats.num_classes)
+  Y = tensorflow.keras.utils.to_categorical(Y_class,feats.num_classes)
   X = X.astype('float32')
 
   # add watermark for testing models
