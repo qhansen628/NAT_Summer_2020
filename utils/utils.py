@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+
 from numpy.random import seed
 seed(1017)
-from tensorflow import set_random_seed
-set_random_seed(1017)
+import tensorflow as tf
+tf.random.set_seed(1017)
 
 
 from glob import glob
@@ -18,7 +19,7 @@ from mne import pick_types, viz, io, Epochs, create_info
 from mne import pick_channels, concatenate_epochs
 from mne.datasets import sample
 from mne.simulation import simulate_sparse_stc, simulate_raw
-from mne.channels import read_montage, make_standard_montage, read_custom_montage
+from mne.channels import make_standard_montage, read_custom_montage
 from mne.time_frequency import tfr_morlet
 
 import pandas as pd
@@ -33,13 +34,13 @@ import matplotlib.pyplot as plt
 from matplotlib import pyplot as plt
 plt.rcParams["figure.figsize"] = (12,12)
 
-import keras
-from keras import regularizers
-from keras.callbacks import TensorBoard
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Activation, Input
-from keras.layers import Flatten, Conv2D, MaxPooling2D, LSTM
-from keras.layers import BatchNormalization, Conv3D, MaxPooling3D
+
+from tensorflow.keras import regularizers
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Dense, Dropout, Activation, Input
+from tensorflow.keras.layers import Flatten, Conv2D, MaxPooling2D, LSTM
+from tensorflow.keras.layers import BatchNormalization, Conv3D, MaxPooling3D
 
 from sklearn.utils import class_weight
 from sklearn.model_selection import train_test_split
@@ -48,7 +49,7 @@ sns.set_context('talk')
 sns.set_style('white')
 
 
-def load_openBCI_csv_as_raw(filename, sfreq=256., ch_ind=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],                         stim_ind=16, replace_ch_names=None, verbose=1):
+def load_openBCI_csv_as_raw(filename, sfreq=256., ch_ind=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], stim_ind=16, replace_ch_names=None, verbose=1):
     """Load CSV files into a Raw object.
 
     Args:
@@ -130,6 +131,97 @@ def load_data(subject_nb=1, session_nb=1, sfreq=256.,
     return load_openBCI_csv_as_raw(fnames, sfreq=sfreq, ch_ind=ch_ind,
                                 stim_ind=stim_ind,
                                 replace_ch_names=replace_ch_names, verbose=verbose)
+
+def load_muse_csv_as_raw(filename, sfreq=256., ch_ind=[0, 1, 2, 3],
+                         stim_ind=5, replace_ch_names=None, verbose=1):
+    """Load CSV files into a Raw object.
+
+    Args:
+        filename (str or list): path or paths to CSV files to load
+
+    Keyword Args:
+        subject_nb (int or str): subject number. If 'all', load all
+            subjects.
+        session_nb (int or str): session number. If 'all', load all
+            sessions.
+        sfreq (float): EEG sampling frequency
+        ch_ind (list): indices of the EEG channels to keep
+        stim_ind (int): index of the stim channel
+        replace_ch_names (dict or None): dictionary containing a mapping to
+            rename channels. Useful when an external electrode was used.
+
+    Returns:
+        (mne.io.array.array.RawArray): loaded EEG
+    """
+    n_channel = len(ch_ind)
+
+    raw = []
+    for fname in filename:
+        # read the file
+        data = pd.read_csv(fname, index_col=0)
+
+        # name of each channels
+        ch_names = list(data.columns)[0:n_channel] + ['Stim']
+
+        if replace_ch_names is not None:
+            ch_names = [c if c not in replace_ch_names.keys()
+                        else replace_ch_names[c] for c in ch_names]
+
+        # type of each channels
+        ch_types = ['eeg'] * n_channel + ['stim']
+        montage = make_standard_montage('standard_1005')
+
+        # get data and exclude Aux channel
+        data = data.values[:, ch_ind + [stim_ind]].T
+
+        # convert in Volts (from uVolts)
+        data[:-1] *= 1e-6
+
+        # create MNE object
+        info = create_info(ch_names=ch_names, ch_types=ch_types,
+                           sfreq=sfreq, montage=montage, verbose=verbose)
+        raw.append(RawArray(data=data, info=info, verbose=verbose))
+
+    # concatenate all raw objects
+    print(len(raw))
+    raws = concatenate_raws(raw, verbose=verbose)
+
+    return raws
+
+
+def load_muse_data( sfreq=256.,
+              ch_ind=[0, 1, 2, 3], stim_ind=5, replace_ch_names=None, verbose=1):
+    """Load CSV files from the /data directory into a Raw object.
+
+    Args:
+        data_dir (str): directory inside /data that contains the
+            CSV files to load, e.g., 'auditory/P300'
+
+    Keyword Args:
+        subject_nb (int or str): subject number. If 'all', load all
+            subjects.
+        session_nb (int or str): session number. If 'all', load all
+            sessions.
+        sfreq (float): EEG sampling frequency
+        ch_ind (list): indices of the EEG channels to keep
+        stim_ind (int): index of the stim channel
+        replace_ch_names (dict or None): dictionary containing a mapping to
+            rename channels. Useful when an external electrode was used.
+
+    Returns:
+        (mne.io.array.array.RawArray): loaded EEG
+    """
+    
+    muse_data = os.path.join(os.path.expanduser("~"), "edited_Nat_2020", "NAT_Summer_2020", "muse_data")
+    filename = '*.csv'
+    data_path = os.path.join(muse_data, filename)
+    fnames = glob(data_path)
+    
+    print(len(fnames))
+    return load_muse_csv_as_raw(fnames, sfreq=sfreq, ch_ind=ch_ind,
+                                stim_ind=stim_ind,
+                                replace_ch_names=replace_ch_names, verbose=verbose)
+
 
 def plot_conditions(epochs, conditions=OrderedDict(), ci=97.5, n_boot=1000,
                     title='', palette=None, ylim=(-6, 6),
