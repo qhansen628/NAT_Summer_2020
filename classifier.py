@@ -8,16 +8,19 @@ import os
 
 
 
-def make_model(model_path):
+def make_model(username='(default)'):
     '''
     hyper parameters to play around with
     filt_size: convolution size
     input dims -> (num_epochs, 625,16)
     '''
-
+    print('make_model')
+    data_dir = username + '/baseline'
+    modeldir = username + '/model'
+    modelname = modeldir + '/model_name.h5'
 
     #load and concatenate all csv's from data into raw 
-    raw = load_data(sfreq = 250)
+    raw = load_data(data_dir, sfreq=250)
 
     #define event ID's
     event_id = {'negative':1, 'neutral':2, 'positive':3}
@@ -33,11 +36,11 @@ def make_model(model_path):
 
     model,_ = TrainTestVal(model,feats,train_epochs=5)
 
-    model(model.save(model_path))
+    model(model.save(modelname))
 
 
 class LiveModel:
-    def __init__(self,model_path, model_q,art_q):
+    def __init__(self,modelPath, model_q,art_q):
 
         self.last_chunk = None #the previous 250 chunk
         self.current_chunk = None #the newest 250 chunk
@@ -46,8 +49,11 @@ class LiveModel:
         self.model = models.load_model(modelPath)
 
         #preprocessing parameters
-        self.l_freq = l_freq
-        self.h_freq = h_freq
+        #self.l_freq = l_freq
+        #self.h_freq = h_freq
+        self.l_freq = 1.0
+        self.h_freq = 35.0
+
 
     def getData(self):
         #grab new data from running_stream
@@ -86,7 +92,7 @@ class LiveModel:
 
         return data
     
-    def predictAndSend(self, data):
+    def predictAndSend(self):
         data = self.getData() #retrieve data
         data = self.preprocess(data) #preprocess data
 
@@ -104,6 +110,6 @@ class LiveModel:
 
 
         
-c = CircularBuffer(5)
-print(c.chunk_size)
+#c = CircularBuffer(5)
+#print(c.chunk_size)
 

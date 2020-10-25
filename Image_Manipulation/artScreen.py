@@ -1,6 +1,6 @@
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QLabel, QApplication, QMessageBox, QDialog)
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtWidgets import (QWidget, QHBoxLayout, QLabel, QApplication, QMessageBox, QDialog, QDesktopWidget)
+from PyQt5.QtCore import QTimer, Qt, QRect
 from multiprocessing import Process, Queue
 from running_stream import *
 from PIL.ImageQt import ImageQt
@@ -8,11 +8,12 @@ from PIL import Image
 import sys
 import numpy as np
 import pdb
-from circleArt import circleArt
-# from Image_Manipulation.circleArt import circleArt
+# from circleArt import circleArt
+from Image_Manipulation.circleArt import circleArt
 import random
 import time
 import math
+from classifier import LiveModel
 
 class artScreen(QDialog):
 
@@ -56,7 +57,7 @@ class artScreen(QDialog):
 
         # Set timer for updating the image with the new data
         timer = QTimer(self)
-        timer.timeout.connect(lambda: self.updateScreen(artFeatures=artFeatures,band_q=band_q,art_q=art_q))
+        timer.timeout.connect(lambda: self.updateScreen(band_q=band_q,art_q=art_q, artFeatures=artFeatures))
         timer.start(1000)  # in milliseconds e.g. 1000 = 1 sec
 
         # set timer for creating the pulsing animation on the image
@@ -70,6 +71,12 @@ class artScreen(QDialog):
         # initiating the UI layout
         self.hbox = QHBoxLayout(self)
         self.setWindowTitle('Art Screen')
+
+        qtRectangle = QRect(0, 0, self.size[1], self.size[0])
+        centerPoint = QDesktopWidget().availableGeometry().center()
+        qtRectangle.moveCenter(centerPoint)
+        self.move(qtRectangle.topLeft())
+        
         pixmap = QPixmap()
         self.imageLabel = QLabel(self)
         self.imageLabel.setPixmap(pixmap)
@@ -94,9 +101,11 @@ class artScreen(QDialog):
         # only get new state_dict and noise_dict if q is not empty
         if not band_q.empty():
             state_dict,noise_dict = band_q.get()
+            self.imageArray = circleArt(self.imageArray,noise_dict,state_dict,artFeatures) # create new image array from circleArt
         else:
             state_dict = self.state_dict
             noise_dict = self.noise_dict
+            self.imageArray = circleArt(self.imageArray,noise_dict,state_dict,artFeatures) # create new image array from circleArt
 
         if state_dict != self.state_dict or noise_dict != self.noise_dict:  # only change the image if the noise levels and states of bandwidths have changed in any way
             self.state_dict = state_dict
@@ -208,10 +217,10 @@ def spawned_stream_process(band_q,model_q):
     stream = Stream()
     stream.run(band_q,model_q)
 
-# def spawned_model_process(model_q,art_q):
+def spawned_model_process(model_q,art_q):
 
-#     liveModel = LiveModel('model/cnn_time_dom.h5',model_q,art_q)
-#     liveModel.run()
+    liveModel = LiveModel('data/Fred/model/cnn_time_dom.h5',model_q,art_q)
+    liveModel.run()
 
 def main():
     
@@ -247,9 +256,9 @@ def launchArtScreen(size, artFeatures):
     run_process = Process(target = spawned_stream_process, args = (band_q,model_q))
     run_process.start() 
 
-    # global running_model
-    # running_model = Process(target = spawned_model_process, args=(model_q,art_q))
-    # running_model.start()
+    global running_model
+    running_model = Process(target = spawned_model_process, args=(model_q,art_q))
+    running_model.start()
 
 
     art = artScreen()
