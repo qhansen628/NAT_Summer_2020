@@ -10,7 +10,7 @@ from math import floor
 from csv import reader
 
 
-def present(q, duration=120, width=1920, height=1080):
+def present(duration=120, width=500, height=400):
 
     # create
     info = StreamInfo('Markers', 'Markers', 1, 0, 'int32', 'myuidw43536')
